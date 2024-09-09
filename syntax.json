@@ -1,0 +1,8 @@
+{
+    "patterns": [
+        {
+        "name": "keyword.nanpa",
+        "match": "\\b(󱤽󱦐)([^󱦑]*)(󱦑)\\b"
+        }
+    ]
+}

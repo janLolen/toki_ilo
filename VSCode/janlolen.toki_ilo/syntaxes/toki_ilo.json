@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "scopeName": "source.tok",
+	"name": "tok",
+	"patterns": [
+		{"include": "#keywords"},
+    {"include": "#register"},
+    {"include": "#comments"},
+    {"include": "#label"},
+    {"include": "#control"},
+    {"include": "#constants"},
+    {"include": "#variables"},
+    {"include": "#support"}
+	],
+  "repository": {
+    "comments": { "patterns": [
+        {"name": "comment.line", "begin": "󱥬󱤑󱤡[^\\n]", "end": "\\n"},
+        {"name": "comment.block", "begin": "󱥬󱤑󱤡\\n", "end": "󱥬󱤑󱤧󱥐"}
+      ]},
+    "constants": { "patterns": [
+        {"name": "constant.numeric", "match": "[󱥣󱤽][󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+"}
+      ]},
+    "support": { "patterns": [
+      {"name": "keyword.function.start", "match": "(󱥉󱦐)([^󱦑]+)(󱦑󱤡)"},
+      {"name": "keyword.function.end", "match": "(󱥉󱦐)([^󱦑]+)(󱦑󱤧󱥐)"},
+      {"name": "keyword.function.print", "match": "(󱥄󱤮󱤉)"}
+      ]},
+    "keywords": { "patterns": [
+      {"name": "keyword.control.goto", "match": "󱥄󱥩󱥫󱦐([^󱦑]+)󱦑"},
+      {"name": "keyword.control.label", "match": "(󱥫󱦐)([^󱦑]+)(󱦑󱤡)"},
+      {"name": "keyword.control.label", "match": "(󱥫󱦐)([^󱦑]+)(󱦑󱤧󱥐)"},
+      {"name": "keyword.nasin.start", "match": "(󱤙󱤿󱦐)([^󱦑]+)(󱦑󱤡)"},
+      {"name": "keyword.nasin.end", "match": "(󱥄󱥐󱤙󱤿󱦐)([^󱦑]+)(󱦑)"},
+      {"name": "keyword.operator.other", "match": "([󱤧󱤡]|(󱥄)(?=[^󱤮󱥌]))"},
+      {"name": "keyword.operator.add", "match": "(󱥄󱥌󱤉)(?=(.*󱥩))|(?<=(󱥄󱥌󱤉.*))(󱥩)"}
+      ]}
+  }
+}
