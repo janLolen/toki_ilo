@@ -15,10 +15,13 @@ void print(int a, type_nasinCurrent var_nasinCurrent){
     switch(var_nasinCurrent){
         case NONE:
             return;
+            break;
         case ASCII:
             printf("%c", a);
+            break;
         case NUMBER:
             printf("%d", a);
+            break;
         default:
             return;
     }
