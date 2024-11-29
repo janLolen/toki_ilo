@@ -76,12 +76,12 @@ def replace_utf8_in_identifiers(code):
 
     return ''.join(output)
 
-with open('C:\\Users\\eic17\\Desktop\\traduz\\toki_ilo.tok', encoding='UTF-8') as file:
+with open('C:\\GitHub\\toki_ilo\\toki_ilo.tok', encoding='UTF-8') as file:
     array = []
     string = ''
     for line in file:
         array.append(line)
-    with open('C:\\Users\\eic17\\Desktop\\traduz\\toki_ilo_transl.c', 'w', encoding='UTF-8') as out:
+    with open('C:\\GitHub\\toki_ilo\\toki_ilo_transl.c', 'w', encoding='UTF-8') as out:
     # variables
         for i in range(len(array)): array[i] = (re.sub("([󱥓󱤽]󱦐)(.*)(󱦑󱤧󱤬󱤧󱥣)([󱤂󱥳󱥮󱤼󿵩󱤭󱤄]+)", "int var_\\2 = nnpParser(\"\\4\");", array[i]))
         for i in range(len(array)): array[i] = (re.sub("(󱤽󱦐)(.*)(󱦑󱤽)([󱤂󱥳󱥮󱤼󿵩󱤭󱤄]+)", "var_\\2[nnpParser(\"\\4\")-1]", array[i]))

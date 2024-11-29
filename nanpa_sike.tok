@@ -1,0 +1,51 @@
+󱥉󱦐󱥇󱦝󱦑󱤡
+    󱥬󱤑󱤡 subroutine
+    󱥬󱤑󱤡
+        s=0
+        k=0
+        label1:
+            8:1=r:k
+            r += j
+            base = 16
+            exp = n-k
+            rep = 0
+            exp:
+                base:1=base:base
+                rep++
+                rep<exp)
+                    otawa exp
+            :exp
+            base:r=new:1
+            new:1=new:r
+            base -= new     // base = base%r
+            // shift
+            rep = 0
+            two:
+                2:1=base:base
+                rep++
+                rep<Tawa)
+                    otawa two
+            :two
+            base:r=base:1
+
+            
+    󱥬󱤑󱤧󱥐
+
+    󱥬󱤑󱤡 Pona=14, Tawa=4*P
+    󱥓󱦐󱥔󱦑󱤧󱤬󱤧󱥣󱤭󱤭󱥮󱥮
+    󱥓󱦐󱥩󱦑󱤧󱤬
+    󱤽󱦐󱥔󱦑󱤧󱥣󱥳󱤭󱤽󱦐󱥩󱦑󱥄󱥣󱥮󱥮
+
+    󱥬󱤑󱤡 i=0->Pona Len*=16
+    󱥓󱦐󱤥󱦑󱤧󱤬󱥣󱥳
+    󱥓󱦐󱥝󱦑󱤧󱤬󱤧󱥣󱤂
+    󱥫󱦐󱥳󱦑󱤡
+    󱥄󱥌󱤉󱥣󱥳󱥩󱤽󱦐󱥝󱦑
+    󱤽󱦐󱥝󱦑󱤧󱤨󱥩󱤽󱦐󱥔󱦑󱤡
+        󱤽󱦐󱤥󱦑󱤧󱥣󱥳󱤡󱤽󱦐󱤥󱦑󱥄󱥣󱤭󱤭󱤭󱥳
+    󱥫󱦐󱥳󱦑󱤧󱥐
+
+    󱥬󱤑󱤡 Sinpin = Len-1
+    󱥓󱦐󱥟󱦑󱤧󱤬󱤧󱤽󱦐󱤥󱦑
+    󱥄󱥶󱤉󱥡󱥳󱥧󱤽󱦐󱥟󱦑
+󱥉󱦐󱥇󱦝󱦑󱤧󱥐
