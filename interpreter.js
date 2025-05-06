@@ -79,6 +79,10 @@ function isDecrement(line) {
     return (/^󱥄󱥶󱤉󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+󱥧󱥓󱦐[^\n]+󱦑$/).test(line)
 }
 
+function isEqual(line) {
+    return (/^󱥓󱦐[^\n]+󱦑󱤧󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+󱤡$/).test(line)
+}
+
 function addLabel(line, pc) {
     let name = line.replace(/(󱥫󱦐)([^\n]+)(󱦑󱤡)/,"$2")
     if(labels[name] == undefined) {
@@ -155,6 +159,12 @@ function runLine(lines) {
         let name = line.replace(/^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/,"$4")
         let value = nnpParser(line.replace(/^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/,"$2"))
         vars[name].value -= value
+    }
+
+    if(isEqual(line)) {
+        let name = line.replace(/^(󱥓󱦐)([^\n]+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/,"$2")
+        let value = nnpParser(line.replace(/^(󱥓󱦐)([^\n]+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/,"$4"))
+        if(vars[name].value != value) pc++
     }
 }
 
