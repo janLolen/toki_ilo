@@ -20,6 +20,7 @@
             background-color: black;
             color: greenyellow;
             font-family: monospace;
+            min-height: fit-content;
         }
         #output {
             height: 100%;
@@ -57,7 +58,7 @@
 <body>
     <button onclick="run()">RUN!</button>
     <div class="poki">
-        <div class="zone"><p class="label">Program:</p><textarea name="code" id="code"></textarea></div>
+        <div class="zone"><p class="label">Program:</p><textarea name="code" id="code" onkeyup="textAreaAdjust(this)"></textarea></div>
         <div class="zone"><p class="label">Output:</p><div id="output"></div></div>
     </div>
     <script src="interpreter.js"></script>
@@ -68,6 +69,10 @@
             console.log(labels)
             console.log("VARIABLES:")
             console.log(vars)
+        }
+        function textAreaAdjust(element) {
+            element.style.height = "1px";
+            element.style.height = (25+element.scrollHeight)+"px";
         }
     </script>
 </body>
