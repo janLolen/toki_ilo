@@ -3,6 +3,34 @@ let labels = {}
 let pc = 0
 let output = document.getElementById("output")
 
+// TODO: function int->nnp
+
+function nnpSingleDigit(digit) {
+    if(!/[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/.test(digit)) return NaN
+    switch(digit) {
+        case "󱤂": return 0;
+        case "󱥳": return 1;
+        case "󱥮": return 2;
+        case "󱤭": return 5;
+        case "󱤼": case "󿵩": return 20;
+        case "󱤄": return 100;
+    }
+}
+
+function nnpParser(original) {
+    let array = [...original]
+    let out=0
+    let prov=0
+    for(let i=0; i<array.length; i++){
+        prov = nnpSingleDigit(array[i])
+        if(prov == 0) return 0
+        if(prov == NaN) return NaN
+        if(prov == 100) out *= prov
+        else out += prov
+    }
+    return out
+}
+
 function warning(message) {
     console.log("WARNING! - "+message);
 }
@@ -12,15 +40,31 @@ function log(message) {
 }
 
 function isLabel(line) {
-    return (/󱥫󱦐[^\n]+󱦑󱤡/).test(line);
+    return (/^󱥫󱦐[^\n]+󱦑󱤡$/).test(line);
 }
 
 function isGoto(line) {
-    return (/󱥄󱥩󱥫󱦐[^\n]+󱦑/).test(line);
+    return (/^󱥄󱥩󱥫󱦐[^\n]+󱦑$/).test(line);
 }
 
-function isPrint(line) {
-    return (/󱥄󱥠󱤉󱥬󿬂[^\n]+/).test(line);
+function isPrintText(line) {
+    return (/^󱥄󱥠󱤉󱥬󿬂[^\n]+$/).test(line);
+}
+
+function isPrintNumber(line) {
+    return (/^󱥄󱥠󱤉󱤽󿬂[^\n]+$/).test(line);
+}
+
+function isPrintVariable(line) {
+    return (/^󱥄󱥠󱤉󱥓󱦐[^\n]+󱦑$/).test(line);
+}
+
+function isVarDeclaration(line) {
+    return (/^󱥓󱦐[^\n]+󱦑󱤧󱤬$/).test(line)
+}
+
+function isVarDeclarationWithAssignment(line) {
+    return (/^󱥓󱦐[^\n]+󱦑󱤧󱤬󱤧󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+$/).test(line)
 }
 
 function addLabel(line, pc) {
@@ -34,7 +78,7 @@ function addLabel(line, pc) {
 
 function runLine(lines) {
     log(`running line ${pc}`)
-    let line = lines[pc]
+    let line = lines[pc].replaceAll(/[ 　]/g, "")
 
     if(isLabel(line)){
         addLabel(line)
@@ -55,9 +99,38 @@ function runLine(lines) {
         }
     }
 
-    if(isPrint(line)){
+    if(isPrintText(line)){
         let text = line.replace(/(󱥄󱥠󱤉󱥬󿬂)([^\n]+)/, "$2")
         output.innerHTML += `<p>${text}</p>`
+    }
+
+    if(isPrintNumber(line)){
+        let text = nnpParser(line.replace(/(󱥄󱥠󱤉󱤽󿬂)([^\n]+)/, "$2"))
+        output.innerHTML += `<p>${text}</p>`
+    }
+
+    if(isPrintVariable(line)){
+        let name = line.replace(/^(󱥄󱥠󱤉󱥓󱦐)([^\n]+)(󱦑)$/, "$2")
+        output.innerHTML += `<p>${vars[name].value}</p>`
+    }
+    
+    if(isVarDeclaration(line)) {
+        let name = line.replace(/(󱥓󱦐)([^\n]+)(󱦑󱤧󱤬)/,"$2")
+        log(`creating variable ${name}`)
+        vars[name] = {
+            value: 0,
+            constant: false
+        }
+    }
+
+    if(isVarDeclarationWithAssignment(line)) {
+        let name = line.replace(/(󱥓󱦐)([^\n]+)(󱦑󱤧󱤬󱤧󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)/,"$2")
+        let value = nnpParser(line.replace(/(󱥓󱦐)([^\n]+)(󱦑󱤧󱤬󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)/,"$4"))
+        log(`creating variable ${name} with value ${value}`)
+        vars[name] = {
+            value: value,
+            constant: false
+        }
     }
 }
 
