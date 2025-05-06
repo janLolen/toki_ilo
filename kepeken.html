@@ -5,45 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        body {
+            background-color: darkslategray;
+        }
         button {
             width: 100%;
             display: block;
+            background-color: black;
+            color: greenyellow;
         }
         textarea {
-            width: 80%;
+            width: 100%;
             display: block;
+            background-color: black;
+            color: greenyellow;
+            font-family: monospace;
         }
         #output {
             height: 100%;
             background-color: black;
             color: greenyellow;
             font-family: monospace;
+            border-style: inset;
+            border-width: 2px;
+            border-color: white;
+            width: 100%;
+            text-align: left;
         }
         p {
             margin: 0px;
         }
         .zone {
-            width: 50%;
+            width: 40%;
             height: 100%;
-            min-width: 400px;
+            margin-right: 5%;
+            margin-left: 5%;
+            align-content: center;
+            text-align: center;
         }
         .poki {
             display: flex;
         }
-
+        .label {
+            color: white;
+            font-family: monospace;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 <body>
     <button onclick="run()">RUN!</button>
     <div class="poki">
-        <div class="zone"><textarea name="code" id="code"></textarea></div>
-        <div class="zone"><p>Output:</p><div id="output"></div></div>
+        <div class="zone"><p class="label">Program:</p><textarea name="code" id="code"></textarea></div>
+        <div class="zone"><p class="label">Output:</p><div id="output"></div></div>
     </div>
     <script src="interpreter.js"></script>
     <script>
         function run() {
             runCode(document.getElementById("code").value.split("\n"));
+            console.log("LABELS:")
             console.log(labels)
+            console.log("VARIABLES:")
             console.log(vars)
         }
     </script>

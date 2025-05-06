@@ -2,6 +2,8 @@ let vars = {}
 let labels = {}
 let pc = 0
 let output = document.getElementById("output")
+let instructionCounter = 0
+const maxInstructionCounter = 1000
 
 const invalidDoubleCartouche = /(󱦐)(󱦐|󱦑)(󱦑)/
 const labelRe = /^(󱥫󱦐)(.+)(󱦑󱤡)$/
@@ -94,12 +96,13 @@ function removeSpaces(line) {
         line = split[1]
         text = split[2]
     }
-    line = line.replaceAll(/([ 　])/g, "").replace(/󱥬󱤑󱤡.*/, "").replace(/\/\/.*/, "")
+    line = line.replaceAll(/([ 　‍])/g, "").replace(/󱥬󱤑󱤡.*/, "").replace(/\/\/.*/, "")
     line = line+text
     return line
 }
 
 function runLine(lines) {
+    if(instructionCounter >= maxInstructionCounter) return
     log(`running line ${pc}`)
 
     if(isInvalid(lines[pc])) return
@@ -228,8 +231,10 @@ function runCode(lines){
     labels = {}
     pc = 0
     output.innerHTML = ""
+    instructionCounter = 0
     log("==== START OF PROGRAM ====")
     for(pc = 0; pc < lines.length; pc++){
         runLine(lines);
+        instructionCounter++;
     }
 }
