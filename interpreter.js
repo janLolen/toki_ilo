@@ -5,6 +5,10 @@ let output = document.getElementById("output")
 
 // TODO: function int->nnp
 
+function ositelen(text) {
+    output.innerHTML += `<p>> ${text}</p>`
+}
+
 function nnpSingleDigit(digit) {
     if(!/[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/.test(digit)) return NaN
     switch(digit) {
@@ -67,6 +71,14 @@ function isVarDeclarationWithAssignment(line) {
     return (/^󱥓󱦐[^\n]+󱦑󱤧󱤬󱤧󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+$/).test(line)
 }
 
+function isIncrement(line) {
+    return (/^󱥄󱥌󱤉󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+󱥩󱥓󱦐[^\n]+󱦑$/).test(line)
+}
+
+function isDecrement(line) {
+    return (/^󱥄󱥶󱤉󱥣[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+󱥧󱥓󱦐[^\n]+󱦑$/).test(line)
+}
+
 function addLabel(line, pc) {
     let name = line.replace(/(󱥫󱦐)([^\n]+)(󱦑󱤡)/,"$2")
     if(labels[name] == undefined) {
@@ -78,7 +90,7 @@ function addLabel(line, pc) {
 
 function runLine(lines) {
     log(`running line ${pc}`)
-    let line = lines[pc].replaceAll(/[ 　]/g, "")
+    let line = lines[pc].replaceAll(/[ 　]/g, "").replace(/󱥬󱤑󱤡.*/, "").replace(/\/\/.*/, "")
 
     if(isLabel(line)){
         addLabel(line)
@@ -101,17 +113,17 @@ function runLine(lines) {
 
     if(isPrintText(line)){
         let text = line.replace(/(󱥄󱥠󱤉󱥬󿬂)([^\n]+)/, "$2")
-        output.innerHTML += `<p>${text}</p>`
+        ositelen(text)
     }
 
     if(isPrintNumber(line)){
         let text = nnpParser(line.replace(/(󱥄󱥠󱤉󱤽󿬂)([^\n]+)/, "$2"))
-        output.innerHTML += `<p>${text}</p>`
+        ositelen(text)
     }
 
     if(isPrintVariable(line)){
         let name = line.replace(/^(󱥄󱥠󱤉󱥓󱦐)([^\n]+)(󱦑)$/, "$2")
-        output.innerHTML += `<p>${vars[name].value}</p>`
+        ositelen(vars[name].value)
     }
     
     if(isVarDeclaration(line)) {
@@ -131,6 +143,18 @@ function runLine(lines) {
             value: value,
             constant: false
         }
+    }
+
+    if(isIncrement(line)) {
+        let name = line.replace(/^(󱥄󱥌󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥩󱥓󱦐)([^\n]+)(󱦑)$/,"$4")
+        let value = nnpParser(line.replace(/^(󱥄󱥌󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥩󱥓󱦐)([^\n]+)(󱦑)$/,"$2"))
+        vars[name].value += value
+    }
+
+    if(isDecrement(line)) {
+        let name = line.replace(/^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/,"$4")
+        let value = nnpParser(line.replace(/^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/,"$2"))
+        vars[name].value -= value
     }
 }
 
