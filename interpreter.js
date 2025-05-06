@@ -10,12 +10,15 @@ const printTextRe = /^(󱥄󱥠󱤉󱥬󿬂)(.+)$/
 const printNumberRe = /^(󱥄󱥠󱤉󱤽󿬂)(.+)$/
 const printVariableRe = /^(󱥄󱥠󱤉󱥓󱦐)(.+)(󱦑)$/
 const varDeclarationRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬)$/
-const varDeclarationAssignmentRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
+const varDeclarationAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
+const varDeclarationAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
 const incrementRe = /^(󱥄󱥌󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥩󱥓󱦐)([^\n]+)(󱦑)$/
 const decrementRe = /^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/
 const numberRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+/
 const digitRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/
 const equalNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/
+const varAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
+const varAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
 
 // TODO: function int->nnp
 
@@ -68,44 +71,8 @@ function log(message) {
     console.log(message)
 }
 
-function isLabel(line) {
-    return labelRe.test(line);
-}
-
-function isGoto(line) {
-    return gotoRe.test(line);
-}
-
-function isPrintText(line) {
-    return printTextRe.test(line);
-}
-
-function isPrintNumber(line) {
-    return printNumberRe.test(line);
-}
-
-function isPrintVariable(line) {
-    return printVariableRe.test(line);
-}
-
-function isVarDeclaration(line) {
-    return varDeclarationRe.test(line)
-}
-
-function isVarDeclarationWithAssignment(line) {
-    return varDeclarationAssignmentRe.test(line)
-}
-
-function isIncrement(line) {
-    return incrementRe.test(line)
-}
-
-function isDecrement(line) {
-    return decrementRe.test(line)
-}
-
-function isEqualNumber(line) {
-    return equalNumberRe.test(line)
+function is(regex, line) {
+    return regex.test(line)
 }
 
 function addLabel(line, pc) {
@@ -139,17 +106,17 @@ function runLine(lines) {
 
     let line = removeSpaces(lines[pc])
 
-    if(isLabel(line)){
+    if(is(labelRe, line)){
         addLabel(line, pc)
     }
 
-    if(isGoto(line)){
+    if(is(gotoRe, line)){
         let name = line.match(gotoRe)[2]
         let newpc
         if(labels[name] == undefined) {
             log("looking for label "+name)
             for(newpc = 0; newpc<lines.length && labels[name] == undefined; newpc++) 
-                if(isLabel(lines[newpc])){
+                if(is(labelRe, lines[newpc])){
                     addLabel(lines[newpc], newpc)
                 }}
         if(labels[name] != undefined) {
@@ -158,26 +125,26 @@ function runLine(lines) {
         }
     }
 
-    if(isPrintText(line)){
+    if(is(printTextRe, line)){
         let text = line.match(printTextRe)[2]
         ositelen(text)
         log(`printing text ${text}`)
     }
 
-    if(isPrintNumber(line)){
+    if(is(printNumberRe, line)){
         let text = nnpParser(line.match(printNumberRe)[2])
         ositelen(text)
         log(`printing text ${text}`)
     }
 
-    if(isPrintVariable(line)){
+    if(is(printVariableRe, line)){
         let name = line.match(printVariableRe)[2]
         if(vars[name]==undefined) {error("undefined variable"); return}
         ositelen(vars[name].value)
         log(`printing the value of variable ${name}`)
     }
     
-    if(isVarDeclaration(line)) {
+    if(is(varDeclarationRe, line)) {
         let name = line.match(varDeclarationRe)[2]
         log(`creating variable ${name}`)
         vars[name] = {
@@ -186,8 +153,8 @@ function runLine(lines) {
         }
     }
 
-    if(isVarDeclarationWithAssignment(line)) {
-        let split = line.match(varDeclarationAssignmentRe)
+    if(is(varDeclarationAssignmentNumberRe, line)) {
+        let split = line.match(varDeclarationAssignmentNumberRe)
         let name = split[2]
         let value = nnpParser(split[4])
         log(`creating variable ${name} with value ${value}`)
@@ -197,7 +164,18 @@ function runLine(lines) {
         }
     }
 
-    if(isIncrement(line)) {
+    if(is(varDeclarationAssignmentVarRe, line)) {
+        let split = line.match(varDeclarationAssignmentNumberRe)
+        let name = split[2]
+        let value = vars[split[4]].value
+        log(`creating variable ${name} with value ${value} from variable ${split[4]}`)
+        vars[name] = {
+            value: value,
+            constant: false
+        }
+    }
+
+    if(is(incrementRe, line)) {
         let split = line.match(incrementRe)
         let name = split[4]
         let value = nnpParser(split[2])
@@ -206,7 +184,7 @@ function runLine(lines) {
         log(`incrementing ${name} by ${value}`)
     }
 
-    if(isDecrement(line)) {
+    if(is(decrementRe, line)) {
         let split = line.match(decrementRe)
         let name = split[4]
         let value = nnpParser(split[2])
@@ -215,12 +193,33 @@ function runLine(lines) {
         log(`decrementing ${name} by ${value}`)
     }
 
-    if(isEqualNumber(line)) {
+    if(is(equalNumberRe, line)) {
         let split = line.match(equalNumberRe)
         let name = split[2]
         let value = nnpParser(split[4])
         if(vars[name]==undefined) {error("undefined variable"); return}
         if(vars[name].value != value) pc++
+    }
+
+    if(is(varAssignmentNumberRe, line)) {
+        let split = line.match(varAssignmentNumberRe)
+        let name = split[2]
+        let value = nnpParser(split[4])
+        if(vars[name].constant) error("attempting to reassign constant")
+        else {
+            vars[name].value = value
+            log(`assigning value ${value} to variable ${name}`)
+        }
+    }
+    if(is(varAssignmentVarRe, line)) {
+        let split = line.match(varAssignmentVarRe)
+        let name = split[2]
+        let value = vars[split[4]].value
+        if(vars[name].constant) error("attempting to reassign constant")
+        else {
+            vars[name].value = value
+            log(`assigning value ${value} to variable ${name} from variable ${split[4]}`)
+        }
     }
 }
 
