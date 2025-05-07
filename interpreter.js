@@ -1,6 +1,7 @@
 let vars = {}
 let labels = {}
 let pc = 0
+let currentAssignedArray = ""
 let output = document.getElementById("output")
 let instructionCounter = 0
 const maxInstructionCounter = 1000
@@ -19,8 +20,16 @@ const decrementRe = /^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧�
 const numberRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+/
 const digitRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/
 const equalNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/
+const equalVarRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥖󱥓󱦐)(.+)(󱦑󱤡)$/
 const varAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
 const varAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
+const arrayDeclarationRe = /^(󱤟󱥓󱦐)(.+)(󱦑󱤧󱤬)$/
+const arrayDeclarationAssignmentStartRe = /^(󱤟󱥓󱦐)(.+)(󱦑󱤧󱤬󱤧󱤓)$/
+const arrayDeclarationAssignmentContinueNumberRe = /^(󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
+const arrayDeclarationAssignmentContinueVarRe = /^(󱤉󱥣󱥍󱥓󱦐)(.+)(󱦑)$/
+const arrayDeclarationAssignmentEndRe = /^󱤉󱤌󱤆󱤂$/
+const arrayIndexingAssignmentNumberRe = /^(󱥓󱤽)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥍󱤟󱦐|󱥍󱤟󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
+const arrayIndexingAssignmentVarRe = /^(󱥓󱤽)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥍󱤟󱦐|󱥍󱤟󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
 
 // TODO: function int->nnp
 
@@ -109,119 +118,225 @@ function runLine(lines) {
 
     let line = removeSpaces(lines[pc])
 
-    if(is(labelRe, line)){
-        addLabel(line, pc)
-    }
-
-    if(is(gotoRe, line)){
-        let name = line.match(gotoRe)[2]
-        let newpc
-        if(labels[name] == undefined) {
-            log("looking for label "+name)
-            for(newpc = 0; newpc<lines.length && labels[name] == undefined; newpc++) 
-                if(is(labelRe, lines[newpc])){
-                    addLabel(lines[newpc], newpc)
-                }}
-        if(labels[name] != undefined) {
-            log(`found label ${name} at line ${labels[name]}, jumping`)
-            pc = labels[name]
+    // Labels
+    {
+        if(is(labelRe, line)){
+            addLabel(line, pc)
+        }
+    
+        if(is(gotoRe, line)){
+            let name = line.match(gotoRe)[2]
+            let newpc
+            if(labels[name] == undefined) {
+                log("looking for label "+name)
+                for(newpc = 0; newpc<lines.length && labels[name] == undefined; newpc++) 
+                    if(is(labelRe, lines[newpc])){
+                        addLabel(lines[newpc], newpc)
+                    }}
+            if(labels[name] != undefined) {
+                log(`found label ${name} at line ${labels[name]}, jumping`)
+                pc = labels[name]
+            }
         }
     }
 
-    if(is(printTextRe, line)){
-        let text = line.match(printTextRe)[2]
-        ositelen(text)
-        log(`printing text ${text}`)
+    // Print
+    {
+        if(is(printTextRe, line)){
+            let text = line.match(printTextRe)[2]
+            ositelen(text)
+            log(`printing text ${text}`)
+        }
+    
+        if(is(printNumberRe, line)){
+            let text = nnpParser(line.match(printNumberRe)[2])
+            ositelen(text)
+            log(`printing text ${text}`)
+        }
+    
+        if(is(printVariableRe, line)){
+            let name = line.match(printVariableRe)[2]
+            if(vars[name]==undefined) {error("undefined variable"); return}
+            ositelen(vars[name].value)
+            log(`printing the value of variable ${name}`)
+        }
     }
 
-    if(is(printNumberRe, line)){
-        let text = nnpParser(line.match(printNumberRe)[2])
-        ositelen(text)
-        log(`printing text ${text}`)
-    }
-
-    if(is(printVariableRe, line)){
-        let name = line.match(printVariableRe)[2]
-        if(vars[name]==undefined) {error("undefined variable"); return}
-        ositelen(vars[name].value)
-        log(`printing the value of variable ${name}`)
+    // Declaration
+    {
+        // Variable
+        {
+            if(is(varDeclarationRe, line)) {
+                let name = line.match(varDeclarationRe)[2]
+                log(`creating variable ${name}`)
+                vars[name] = {
+                    type: "variable",
+                    value: 0,
+                    constant: false
+                }
+            }
+        
+            if(is(varDeclarationAssignmentNumberRe, line)) {
+                let split = line.match(varDeclarationAssignmentNumberRe)
+                let name = split[2]
+                let value = nnpParser(split[4])
+                log(`creating variable ${name} with value ${value}`)
+                vars[name] = {
+                    type: "variable",
+                    value: value,
+                    constant: false
+                }
+            }
+        
+            if(is(varDeclarationAssignmentVarRe, line)) {
+                let split = line.match(varDeclarationAssignmentNumberRe)
+                let name = split[2]
+                let value = vars[split[4]].value
+                log(`creating variable ${name} with value ${value} from variable ${split[4]}`)
+                vars[name] = {
+                    type: "variable",
+                    value: value,
+                    constant: false
+                }
+            }
+        }
+        // Array
+        {
+            if(is(arrayDeclarationRe, line)){
+                let name = line.match(arrayDeclarationRe)[2]
+                log(`declared array ${name}`)
+                vars[name] = {
+                    type: "array",
+                    value: [],
+                    constant: false
+                }
+            }
+            if(is(arrayDeclarationAssignmentStartRe, line)){
+                let name = line.match(arrayDeclarationAssignmentStartRe)[2]
+                log(`declared array ${name}, filling`)
+                vars[name] = {
+                    type: "array",
+                    value: [],
+                    constant: false
+                }
+                currentAssignedArray = name
+            }
+            if(is(arrayDeclarationAssignmentContinueNumberRe, line)){
+                // TODO: exceptions
+                let value = nnpParser(line.match(arrayDeclarationAssignmentContinueNumberRe)[2])
+                vars[currentAssignedArray].value.push(value)
+                log(`pushing value ${value} to array ${currentAssignedArray}`)
+            }
+            if(is(arrayDeclarationAssignmentContinueVarRe, line)){
+                let value = vars[line.match(arrayDeclarationAssignmentContinueVarRe)[2]].value
+                vars[currentAssignedArray].value[vars[currentAssignedArray].length] = value
+                log(`pushing value ${value} from variable ${line.match(arrayDeclarationAssignmentContinueVarRe)[2]} to array ${currentAssignedArray}`)
+            }
+            if(is(arrayDeclarationAssignmentEndRe, line)){
+                log(`ending assignments to array ${currentAssignedArray}`)
+                currentAssignedArray = ""
+            }
+        }
     }
     
-    if(is(varDeclarationRe, line)) {
-        let name = line.match(varDeclarationRe)[2]
-        log(`creating variable ${name}`)
-        vars[name] = {
-            value: 0,
-            constant: false
+    // Assignment
+    {
+        // Variable
+        {
+            if(is(varAssignmentNumberRe, line)) {
+                let split = line.match(varAssignmentNumberRe)
+                let name = split[2]
+                let value = nnpParser(split[4])
+                if(vars[name].constant) error("attempting to reassign constant")
+                else {
+                    vars[name].value = value
+                    log(`assigning value ${value} to variable ${name}`)
+                }
+            }
+            if(is(varAssignmentVarRe, line)) {
+                let split = line.match(varAssignmentVarRe)
+                let name = split[2]
+                let value = vars[split[4]].value
+                if(vars[name].constant) error("attempting to reassign constant")
+                else {
+                    vars[name].value = value
+                    log(`assigning value ${value} to variable ${name} from variable ${split[4]}`)
+                }
+            }
+        }
+        // Array
+        {
+            if(is(arrayIndexingAssignmentNumberRe, line)){
+                let split = line.match(arrayIndexingAssignmentNumberRe);
+                let index = nnpParser(split[2])
+                let name = split[4]
+                let value = nnpParser(split[6])
+                vars[name].value[index] = value
+                log(`assigning value ${value} to array ${name} at index ${index}`)
+            }
+            if(is(arrayIndexingAssignmentVarRe, line)){
+                let split = line.match(arrayIndexingAssignmentVarRe);
+                let index = nnpParser(split[2])
+                let name = split[4]
+                let value = vars[split[6]].value
+                vars[name].value[index] = value
+                log(`assigning value ${value} from variable ${split[6]} to array ${name} at index ${index}`)
+            }
         }
     }
 
-    if(is(varDeclarationAssignmentNumberRe, line)) {
-        let split = line.match(varDeclarationAssignmentNumberRe)
-        let name = split[2]
-        let value = nnpParser(split[4])
-        log(`creating variable ${name} with value ${value}`)
-        vars[name] = {
-            value: value,
-            constant: false
+    // Arithmetic
+    {
+        // Variable
+        {
+            if(is(incrementRe, line)) {
+                let split = line.match(incrementRe)
+                let name = split[4]
+                let value = nnpParser(split[2])
+                if(vars[name]==undefined) {error("undefined variable"); return}
+                vars[name].value += value
+                log(`incrementing ${name} by ${value}`)
+            }
+        
+            if(is(decrementRe, line)) {
+                let split = line.match(decrementRe)
+                let name = split[4]
+                let value = nnpParser(split[2])
+                if(vars[name]==undefined) {error("undefined variable"); return}
+                vars[name].value -= value
+                log(`decrementing ${name} by ${value}`)
+            }
+        }
+        // Array
+        {
+
         }
     }
 
-    if(is(varDeclarationAssignmentVarRe, line)) {
-        let split = line.match(varDeclarationAssignmentNumberRe)
-        let name = split[2]
-        let value = vars[split[4]].value
-        log(`creating variable ${name} with value ${value} from variable ${split[4]}`)
-        vars[name] = {
-            value: value,
-            constant: false
+    // Comparison
+    {
+        // Variable
+        {
+            if(is(equalNumberRe, line)) {
+                let split = line.match(equalNumberRe)
+                let name = split[2]
+                let value = nnpParser(split[4])
+                if(vars[name]==undefined) {error("undefined variable"); return}
+                log(`comparing variable ${name} and value ${value}`)
+                if(vars[name].value != value) pc++
+            }
+            if(is(equalVarRe, line)) {
+                let split = line.match(equalVarRe)
+                let name = split[2]
+                let value = vars[split[4]].value
+                if(vars[name]==undefined) {error("undefined variable"); return}
+                log(`comparing variable ${name} and value ${value} from variable ${split[4]}`)
+                if(vars[name].value != value) pc++
+            }
         }
-    }
+        // Array
+        {
 
-    if(is(incrementRe, line)) {
-        let split = line.match(incrementRe)
-        let name = split[4]
-        let value = nnpParser(split[2])
-        if(vars[name]==undefined) {error("undefined variable"); return}
-        vars[name].value += value
-        log(`incrementing ${name} by ${value}`)
-    }
-
-    if(is(decrementRe, line)) {
-        let split = line.match(decrementRe)
-        let name = split[4]
-        let value = nnpParser(split[2])
-        if(vars[name]==undefined) {error("undefined variable"); return}
-        vars[name].value -= value
-        log(`decrementing ${name} by ${value}`)
-    }
-
-    if(is(equalNumberRe, line)) {
-        let split = line.match(equalNumberRe)
-        let name = split[2]
-        let value = nnpParser(split[4])
-        if(vars[name]==undefined) {error("undefined variable"); return}
-        if(vars[name].value != value) pc++
-    }
-
-    if(is(varAssignmentNumberRe, line)) {
-        let split = line.match(varAssignmentNumberRe)
-        let name = split[2]
-        let value = nnpParser(split[4])
-        if(vars[name].constant) error("attempting to reassign constant")
-        else {
-            vars[name].value = value
-            log(`assigning value ${value} to variable ${name}`)
-        }
-    }
-    if(is(varAssignmentVarRe, line)) {
-        let split = line.match(varAssignmentVarRe)
-        let name = split[2]
-        let value = vars[split[4]].value
-        if(vars[name].constant) error("attempting to reassign constant")
-        else {
-            vars[name].value = value
-            log(`assigning value ${value} to variable ${name} from variable ${split[4]}`)
         }
     }
 }

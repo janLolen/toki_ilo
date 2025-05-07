@@ -55,7 +55,7 @@
         }
     </style>
 </head>
-<body>
+<body onload="init()">
     <button onclick="run()">RUN!</button>
     <div class="poki">
         <div class="zone"><p class="label">Program:</p><textarea name="code" id="code" onkeyup="textAreaAdjust(this)"></textarea></div>
@@ -63,6 +63,9 @@
     </div>
     <script src="interpreter.js"></script>
     <script>
+        function init() {
+            textAreaAdjust(document.getElementById("code"))
+        }
         function run() {
             runCode(document.getElementById("code").value.split("\n"));
             console.log("LABELS:")
