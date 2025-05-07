@@ -6,28 +6,37 @@ let output = document.getElementById("output")
 let instructionCounter = 0
 const maxInstructionCounter = 1000
 
+// Invalid:
 const invalidDoubleCartouche = /(󱦐)(󱦐|󱦑)(󱦑)/
+// Label:
 const labelRe = /^(󱥫󱦐)(.+)(󱦑󱤡)$/
 const gotoRe = /^(󱥄󱥩󱥫󱦐)(.+)(󱦑)$/
+// Print:
 const printTextRe = /^(󱥄󱥠󱤉󱥬󿬂)(.+)$/
 const printNumberRe = /^(󱥄󱥠󱤉󱤽󿬂)(.+)$/
 const printVariableRe = /^(󱥄󱥠󱤉󱥓󱦐)(.+)(󱦑)$/
+const printArrayIndexRe = /^(󱥄󱥠󱤉󱥓󱤽)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥍󱤟󱦐|󱥍󱤟󱥓󱦐)(.+)(󱦑)$/
+const printWholeArrayRe = /^(󱥄󱥠󱤉󱤟󱥓󱦐)(.+)(󱦑)$/
+// Declare:
 const varDeclarationRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬)$/
 const varDeclarationAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
 const varDeclarationAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤬󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
-const incrementRe = /^(󱥄󱥌󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥩󱥓󱦐)([^\n]+)(󱦑)$/
-const decrementRe = /^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/
-const numberRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+/
-const digitRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/
-const equalNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/
-const equalVarRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥖󱥓󱦐)(.+)(󱦑󱤡)$/
-const varAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
-const varAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
 const arrayDeclarationRe = /^(󱤟󱥓󱦐)(.+)(󱦑󱤧󱤬)$/
 const arrayDeclarationAssignmentStartRe = /^(󱤟󱥓󱦐)(.+)(󱦑󱤧󱤬󱤧󱤓)$/
 const arrayDeclarationAssignmentContinueNumberRe = /^(󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
 const arrayDeclarationAssignmentContinueVarRe = /^(󱤉󱥣󱥍󱥓󱦐)(.+)(󱦑)$/
 const arrayDeclarationAssignmentEndRe = /^󱤉󱤌󱤆󱤂$/
+// Arithmetic:
+const incrementRe = /^(󱥄󱥌󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥩󱥓󱦐)([^\n]+)(󱦑)$/
+const decrementRe = /^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/
+const equalNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/
+// Assignment
+const varAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
+const varAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
+// Other
+const numberRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+/
+const digitRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/
+const equalVarRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥖󱥓󱦐)(.+)(󱦑󱤡)$/
 const arrayIndexingAssignmentNumberRe = /^(󱥓󱤽)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥍󱤟󱦐|󱥍󱤟󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
 const arrayIndexingAssignmentVarRe = /^(󱥓󱤽)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥍󱤟󱦐|󱥍󱤟󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
 
@@ -111,8 +120,7 @@ function removeSpaces(line) {
 }
 
 function runLine(lines) {
-    if(instructionCounter >= maxInstructionCounter) return
-    log(`running line ${pc}`)
+    log(`running line ${pc} (${instructionCounter} instructions)`)
 
     if(isInvalid(lines[pc])) return
 
@@ -159,6 +167,21 @@ function runLine(lines) {
             if(vars[name]==undefined) {error("undefined variable"); return}
             ositelen(vars[name].value)
             log(`printing the value of variable ${name}`)
+        }
+
+        if(is(printArrayIndexRe, line)){
+            let split = line.match(printArrayIndexRe)
+            let name = split[4]
+            let index = nnpParser(split[2])
+            ositelen(vars[name].value[index-1])
+            log(`printing the value of array ${name} at index ${index}`)
+        }
+
+        if(is(printWholeArrayRe, line)){
+            let name = line.match(printWholeArrayRe)[2]
+            // TODO: better - requires intToNnp()
+            ositelen(vars[name].value)
+            log(`printing array ${name}`)
         }
     }
 
@@ -351,5 +374,6 @@ function runCode(lines){
     for(pc = 0; pc < lines.length; pc++){
         runLine(lines);
         instructionCounter++;
+        if(instructionCounter >= maxInstructionCounter) return
     }
 }

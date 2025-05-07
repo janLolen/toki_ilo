@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        * {
+            font-size: 26px;
+        }
         body {
             background-color: darkslategray;
         }
@@ -37,15 +40,20 @@
             margin: 0px;
         }
         .zone {
-            width: 40%;
+            width: calc(max(40%, 400px));
             height: 100%;
             margin-right: 5%;
             margin-left: 5%;
             align-content: center;
             text-align: center;
+            flex: auto;
         }
         .poki {
             display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            align-items: center;
+            text-align: center;
         }
         .label {
             color: white;
