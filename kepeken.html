@@ -9,7 +9,7 @@
             font-size: 26px;
         }
         body {
-            background-color: darkslategray;
+            background-color: #1E1E1E;
         }
         button {
             width: 100%;
@@ -24,6 +24,7 @@
             color: greenyellow;
             font-family: monospace;
             min-height: fit-content;
+            resize: vertical;
         }
         #output {
             height: 100%;
@@ -52,7 +53,7 @@
             display: flex;
             flex-wrap: wrap;
             align-content: center;
-            align-items: center;
+            align-items: flex-start;
             text-align: center;
         }
         .label {
@@ -60,6 +61,14 @@
             font-family: monospace;
             margin-left: auto;
             margin-right: auto;
+        }
+        select {
+            width: 100%;
+            display: block;
+            background-color: black;
+            color: greenyellow;
+            margin-top: 5%;
+            font-family: monospace;
         }
     </style>
 </head>
@@ -69,9 +78,31 @@
         <div class="zone"><p class="label">Program:</p><textarea name="code" id="code" onkeyup="textAreaAdjust(this)"></textarea></div>
         <div class="zone"><p class="label">Output:</p><div id="output"></div></div>
     </div>
+    <select name="default" id="default" onclick="selectScript()">
+        <option value="none">-- 󱥄󱤮󱤉󱤘󱥍󱤎󱥁 --</option>
+        <option value="countdown">- 󱥄󱥇󱥧󱥣󱤭‍󱤭‍󱤭‍󱥮‍󱥳󱥄󱥩󱥣󱤂</option>
+        <option value="fibonacci">- 󱥄󱥠󱤉󱤟󱤽󱥍󱤑󱦐󱥔󱤎󱥔󱥇󱤽󱤇󱥣󱤎󱦑</option>
+    </select>
     <script src="interpreter.js"></script>
     <script>
         function init() {
+            textAreaAdjust(document.getElementById("code"))
+            document.getElementById("default").value = "none"
+        }
+        function selectScript(){
+            let selected = document.getElementById("default").value;
+            let code = document.getElementById("code")
+            console.log(selected)
+            switch(selected){
+                case "none":
+                    code.value = "";
+                    break;
+                case "countdown":
+                    code.value = "󱥓󱦐󱥳󱦑󱤧󱤬󱤧󱥣󱤭‍󱤭‍󱤭‍󱥮‍󱥳\n󱥫󱦐󱥳󱦑󱤡\n󱥄󱥠󱤉󱥓󱦐󱥳󱦑\n󱥄󱥶󱤉󱥣󱥳󱥧󱥓󱦐󱥳󱦑\n󱥓󱦐󱥳󱦑󱤧󱥣󱤂󱤡\n󱥄󱥩󱥫󱦐󱥮󱦑\n󱥄󱥩󱥫󱦐󱥳󱦑\n󱥫󱦐󱥮󱦑󱤡\n󱥄󱥠󱤉󱥬󿬂󱥉󱤧󱥐"
+                    break;
+                case "fibonacci":
+                    code.value = "󱥓󱦐󱤼󱥷󱦑󱤧󱤬󱤧󱥣󱤭󱤭󱥮\n\n󱥓󱦐󱤼󱤬󱦑󱤧󱤬󱤧󱥣󱥮\n󱥓󱦐󱤂󱦑󱤧󱤬󱤧󱥣󱤂\n󱥓󱦐󱥳󱦑󱤧󱤬󱤧󱥣󱥳\n󱥓󱦐󱥮󱦑󱤧󱤬\n󱥄󱥠󱤉󱥓󱦐󱤂󱦑\n󱥄󱥠󱤉󱥓󱦐󱥳󱦑\n\n󱥄󱥌󱤉󱥣󱥳󱥩󱥓󱦐󱤼󱥷󱦑\n󱥫󱦐󱥉󱦑󱤡\n    󱥓󱦐󱥮󱦑󱥄󱥣󱤂\n    󱥄󱥌󱤉󱥣󱥍󱥓󱦐󱤂󱦑󱥩󱥓󱦐󱥮󱦑\n    󱥄󱥌󱤉󱥣󱥍󱥓󱦐󱥳󱦑󱥩󱥓󱦐󱥮󱦑\n    󱥄󱥠󱤉󱥓󱦐󱥮󱦑\n    󱥓󱦐󱤂󱦑󱥄󱥖󱥓󱦐󱥳󱦑\n    󱥓󱦐󱥳󱦑󱥄󱥖󱥓󱦐󱥮󱦑\n󱥄󱥌󱤉󱥣󱥳󱥩󱥓󱦐󱤼󱤬󱦑\n󱥓󱦐󱤼󱤬󱦑󱤧󱤨󱥩󱥓󱦐󱤼󱥷󱦑󱤡\n󱥄󱥩󱥫󱦐󱥉󱦑"
+            }
             textAreaAdjust(document.getElementById("code"))
         }
         function run() {
@@ -82,8 +113,10 @@
             console.log(vars)
         }
         function textAreaAdjust(element) {
-            element.style.height = "1px";
-            element.style.height = (25+element.scrollHeight)+"px";
+            if(element.scrollHeight-10 > element.style.height.replace("px","")){
+                element.style.height = "1px";
+                element.style.height = (element.scrollHeight)+"px";
+            }
         }
     </script>
 </body>

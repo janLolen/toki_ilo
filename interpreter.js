@@ -6,6 +6,8 @@ let output = document.getElementById("output")
 let instructionCounter = 0
 const maxInstructionCounter = 1000
 
+// TODO: multi-line printing
+
 // Invalid:
 const invalidDoubleCartouche = /(󱦐)(󱦐|󱦑)(󱦑)/
 // Label:
@@ -28,11 +30,17 @@ const arrayDeclarationAssignmentContinueVarRe = /^(󱤉󱥣󱥍󱥓󱦐)(.+)(�
 const arrayDeclarationAssignmentEndRe = /^󱤉󱤌󱤆󱤂$/
 // Arithmetic:
 const incrementRe = /^(󱥄󱥌󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥩󱥓󱦐)([^\n]+)(󱦑)$/
+const incrementVarRe = /^(󱥄󱥌󱤉󱥣󱥍󱥓󱦐)([^\n]+)(󱦑󱥩󱥓󱦐)([^\n]+)(󱦑)$/
 const decrementRe = /^(󱥄󱥶󱤉󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱥧󱥓󱦐)([^\n]+)(󱦑)$/
 const equalNumberRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)(󱤡)$/
+const lessThanVarRe = /^(󱥓󱦐)(.+)(󱦑󱤧󱤨󱥩󱥓󱦐)(.+)(󱦑󱤡)$/
+const comparisonArrIndexVarLessThanArrIndexVarRe = /^(󱥓󱤽󱦐)(󱤉)(󱦑󱥍󱤟󱥓󱦐)(󱤟)(󱦑󱤧󱤨󱥩󱥓󱤽󱦐)(󱤨)(󱦑󱥍󱤟󱥓󱦐)(󱤟)(󱦑󱤡)$/ // TODO: modular
 // Assignment
 const varAssignmentNumberRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥣)([󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+)$/
 const varAssignmentVarRe = /^(󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑)$/
+const varAssignmentFromArrayLength = /^(󱥓󱦐)(.+)(󱦑󱥄󱥣󱥖󱥣󱥍󱤟󱥓󱦐)(.+)(󱦑)$/
+const varAssignmentFromArrayVarIndex = /^(󱥓󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)(.+)(󱦑󱤽󱦐)(.+)(󱦑)$/u
+const assignArrayVarIndexToArrayVarIndex = /^(󱥓󱦐)([^󱦑]+)(󱦑󱤽󱦐)(.+)(󱦑󱥄󱥖󱥓󱦐)([^󱦑]+)(󱦑󱤽󱦐)([^󱦑]+)(󱦑)$/ // TODO: modular, indexing can change
 // Other
 const numberRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]+/
 const digitRe = /[󱤂󱥳󱥮󱤭󱤼󿵩󱤄]/
@@ -88,7 +96,7 @@ function error(message) {
 }
 
 function log(message) {
-    console.log(message)
+    console.log(`${pc} (${instructionCounter}) : ` + message)
 }
 
 function is(regex, line) {
@@ -120,11 +128,13 @@ function removeSpaces(line) {
 }
 
 function runLine(lines) {
-    log(`running line ${pc} (${instructionCounter} instructions)`)
+    let line = removeSpaces(lines[pc])
+    while(removeSpaces(lines[pc]) == "") pc++
+    line = removeSpaces(lines[pc])
+    //log(`${pc} (${instructionCounter}):`)
 
     if(isInvalid(lines[pc])) return
 
-    let line = removeSpaces(lines[pc])
 
     // Labels
     {
@@ -142,7 +152,7 @@ function runLine(lines) {
                         addLabel(lines[newpc], newpc)
                     }}
             if(labels[name] != undefined) {
-                log(`found label ${name} at line ${labels[name]}, jumping`)
+                log(`GOTO ${name}`)
                 pc = labels[name]
             }
         }
@@ -166,7 +176,7 @@ function runLine(lines) {
             let name = line.match(printVariableRe)[2]
             if(vars[name]==undefined) {error("undefined variable"); return}
             ositelen(vars[name].value)
-            log(`printing the value of variable ${name}`)
+            log(`print(${name})`)
         }
 
         if(is(printArrayIndexRe, line)){
@@ -174,14 +184,14 @@ function runLine(lines) {
             let name = split[4]
             let index = nnpParser(split[2])
             ositelen(vars[name].value[index-1])
-            log(`printing the value of array ${name} at index ${index}`)
+            log(`print(${name}[${index}])`)
         }
 
         if(is(printWholeArrayRe, line)){
             let name = line.match(printWholeArrayRe)[2]
             // TODO: better - requires intToNnp()
             ositelen(vars[name].value)
-            log(`printing array ${name}`)
+            log(`printArray(${name})`)
         }
     }
 
@@ -212,7 +222,7 @@ function runLine(lines) {
             }
         
             if(is(varDeclarationAssignmentVarRe, line)) {
-                let split = line.match(varDeclarationAssignmentNumberRe)
+                let split = line.match(varDeclarationAssignmentVarRe)
                 let name = split[2]
                 let value = vars[split[4]].value
                 log(`creating variable ${name} with value ${value} from variable ${split[4]}`)
@@ -286,6 +296,23 @@ function runLine(lines) {
                     log(`assigning value ${value} to variable ${name} from variable ${split[4]}`)
                 }
             }
+            if(is(varAssignmentFromArrayLength, line)) {
+                let split = line.match(varAssignmentFromArrayLength)
+                let varname = split[2]
+                let arrname = split[4]
+                // todo: proper array length
+                // todo: handle type error
+                vars[varname].value = vars[arrname].value.length;
+                log(`assigning value ${vars[arrname].value.length} to variable ${varname} from length of array ${arrname}`)
+            }
+            if(is(varAssignmentFromArrayVarIndex, line)) {
+                let split = line.match(varAssignmentFromArrayVarIndex)
+                let varname = split[2]
+                let arrname = split[4]
+                let index = split[6]
+                log(`${varname} = ${arrname}[${index}]`)
+                vars[varname].value = vars[arrname].value[vars[index].value]
+            }
         }
         // Array
         {
@@ -305,6 +332,15 @@ function runLine(lines) {
                 vars[name].value[index] = value
                 log(`assigning value ${value} from variable ${split[6]} to array ${name} at index ${index}`)
             }
+            if(is(assignArrayVarIndexToArrayVarIndex, line)) {
+                let split = line.match(assignArrayVarIndexToArrayVarIndex)
+                let index = split[4]
+                let jndex = split[8]
+                let array = split[2]
+                let brray = split[6]
+                log("assigning from array to array")
+                vars[array].value[vars[index].value] = vars[brray].value[vars[jndex].value]
+            }
         }
     }
 
@@ -318,7 +354,16 @@ function runLine(lines) {
                 let value = nnpParser(split[2])
                 if(vars[name]==undefined) {error("undefined variable"); return}
                 vars[name].value += value
-                log(`incrementing ${name} by ${value}`)
+                log(`${name} += ${value}`)
+            }
+
+            if(is(incrementVarRe, line)) {
+                let split = line.match(incrementVarRe)
+                let name = split[4]
+                let value = vars[split[2]].value
+                if(vars[name]==undefined) {error("undefined variable"); return}
+                vars[name].value += value
+                log(`${name} += ${value}`)
             }
         
             if(is(decrementRe, line)) {
@@ -345,21 +390,40 @@ function runLine(lines) {
                 let name = split[2]
                 let value = nnpParser(split[4])
                 if(vars[name]==undefined) {error("undefined variable"); return}
-                log(`comparing variable ${name} and value ${value}`)
-                if(vars[name].value != value) pc++
+                log(`${name}==${value} - ${vars[name].value == value} `)
+                if(vars[name].value != value){
+                    pc++
+                    while(lines[pc] == "") {pc++; while(removeSpaces(lines[pc]) == "") pc++}
+                }
             }
             if(is(equalVarRe, line)) {
                 let split = line.match(equalVarRe)
                 let name = split[2]
                 let value = vars[split[4]].value
                 if(vars[name]==undefined) {error("undefined variable"); return}
-                log(`comparing variable ${name} and value ${value} from variable ${split[4]}`)
-                if(vars[name].value != value) pc++
+                log(`${name}==${split[4]} - ${vars[name].value == value}`)
+                if(vars[name].value != value) {pc++; while(removeSpaces(lines[pc]) == "") pc++}
+            }
+            if(is(lessThanVarRe, line)) {
+                let split = line.match(lessThanVarRe)
+                let less = split[2]
+                let than = split[4]
+                if(vars[less]==undefined||vars[than]==undefined) {error("undefined variable"); return}
+                log(`${less}<${than} - ${vars[less].value<vars[than].value}`)
+                if(vars[less].value>=vars[than].value) {pc++; while(removeSpaces(lines[pc]) == "") pc++; console.log("skipping line")}
             }
         }
         // Array
         {
-
+            if(is(comparisonArrIndexVarLessThanArrIndexVarRe, line)) {
+                let split = line.match(comparisonArrIndexVarLessThanArrIndexVarRe)
+                let index = split[2]
+                let jndex = split[6]
+                let array = split[4]
+                let brray = split[8]
+                log(`${array}[${index}] < ${brray}[${jndex}] - ${vars[array].value[vars[index].value] < vars[brray].value[vars[jndex].value]}`)
+                if(vars[array].value[vars[index].value] >= vars[brray].value[vars[jndex].value]) {pc++; while(removeSpaces(lines[pc]) == "") pc++}
+            }
         }
     }
 }

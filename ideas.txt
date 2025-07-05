@@ -1,0 +1,21 @@
+value x:
+if x is a number, nnpParser(x)
+if x is a variable or a constant, x.value
+if x is an indexed array, x[i].value
+if x is an unindexed array, throw type conversion exception
+
+assign x y:
+if x is a number or a constant, throw unassignable conversion
+if x is a variable, assign to x.value
+if x is an indexed array, assign to x[i].value
+if x is an unindexed array, throw type conversion exception
+assign value y
+
+print x:
+print value x to string
+
+x to string:
+if x is a string, x
+if x is a varibale or a constant, intToNnp(x)
+if x is an indexed array, intToNnp(x[i])
+if x is an unindexed array, ...
