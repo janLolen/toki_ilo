@@ -48,17 +48,41 @@ let unitRegexes = {
         }
     }
 
-// THIS WORKS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-function assign (destination, value) {
-    let dType, vType
+/**
+ * TODO: pretend this makes sense then do it
+ */
+function findType(unit) {
+    let type
     for(let i in unitRegexes) {
-        if(destination.match(unitRegexes[i].pattern)) dType=i
-        if(value.match(unitRegexes[i].pattern)) vType=i
+        if(unit.match(unitRegexes[i].pattern)) type=i
     }
-    unitRegexes[dType].assign(destination, unitRegexes[vType].evaluate(value))
+    let out = unitRegexes[type]
+    out.line = unit
+    return out
 }
 
-let assignment = {
-    pattern: new RegExp(`^(.*)(󱥄󱥣)(.*)$`, "u"),
-    action(line) {assign(line.match(this.pattern)[1], line.match(this.pattern)[2])}
+// THIS WORKS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+function assign (destination, value) {
+    let dUnit, vUnit
+    for(let i in unitRegexes) {
+        if(destination.match(unitRegexes[i].pattern)) dUnit = unitRegexes[i]
+        if(value.match(unitRegexes[i].pattern)) vUnit = unitRegexes[i]
+    }
+    dUnit.assign(destination, vUnit.evaluate(value))
+}
+
+let instructions = {
+    // throw an error if the types don't match
+    assignment : [
+        {
+            pattern: new RegExp(`^(.*)(󱥄󱥣|󱥄󱤖󱥣)(.*)$`, "u"),
+            sequence: [types.assignable, types.number],
+            action(line) {assign(line.match(this.pattern)[1], line.match(this.pattern)[2])}
+        },
+        {
+            pattern: new RegExp(`^(.*)(󱥄󱥖|󱥄󱤖󱥖)(.*)$`, "u"),
+            sequence: [types.assignable, types.assignable],
+            action(line) {assign(line.match(this.pattern)[1], line.match(this.pattern)[2])}
+        }
+    ]
 }
