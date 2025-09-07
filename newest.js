@@ -26,19 +26,42 @@ function error(message) {console.log("ERROR! - "+message)}
 function log(message) {console.log(`${pc} (${instructionCounter}) : ` + message)}
 
 let actions = {
-    addLabel(params) {
-        if (!params.labelName) {error("no label name"); return}
-        if (labels[params.labelName] != undefined) {error("redefining label"); return}
-        labels[params.labelName] = pc
+    addLabel(p) {
+        if (!p.labelName) {error("no label name"); return}
+        if (labels[p.labelName] != undefined) {error("redefining label"); return}
+        labels[p.labelName] = pc
     },
-    goto() {},
-    print() {},
-    declare() {},
-    assign() {},
-    add() {},
-    subtract() {},
-    proportion() {},
-    skipLine() {}
+    goto(p) {
+        if (!p.labelName) {error("no label name"); return}
+        if (labels[p.labelName] == undefined) {error("label not found"); return}
+        pc = labels[p.labelName]
+    },
+    print(p) {
+        if(p.varName && p.index) output.innerHTML += `<p>> ${vars[p.varName].value[p.index]}</p>`
+        else if(p.varName && p.indices) {
+            let e = vars[p.varName].value
+            for(let i in p.indices) {
+                e = e[i]
+            }
+            output.innerHTML += `<p>> ${e}</p>`
+        }
+        else if (p.varName) output.innerHTML += `<p>> ${vars[p.varName].value}</p>`
+        else if (p.numberValue) output.innerHTML += `<p>> ${p.numberValue}</p>`
+        else if (p.text) output.innerHTML += `<p>> ${p.text}</p>`
+    },
+    declare(p) {
+        // really hard, TODO: decide where/when to check for unit type
+        if (!p.varName) {error("no variable name"); return}
+        if (!p.value) {error("no value"); return}
+        if (vars[p.varName] != undefined) {error("redeclaring variable"); return}
+        if (vars[p.varName].constant) {error("trying to reassign consstant"); return}
+        vars[p.varName] = pc
+    },
+    assign(p) {},
+    add(p) {},
+    subtract(p) {},
+    proportion(p) {},
+    skipLine(p) {}
 }
 
 let lineTypes = {
@@ -53,8 +76,27 @@ let lineTypes = {
         },
         action : actions.addLabel
     },
-    goto : {},
-    print : {},
+    goto : {
+        patterns : [
+            /^󱥄󱥩󱥫󱦐(.+)󱦑$/
+        ],
+        recognize(line) {
+            return {
+                labelName : line.match(this.pattern)[1]
+            }
+        },
+        action : actions.goto
+    },
+    print : {
+        // TODO: redo .pattern everywhere as I don't think this works at all
+        patterns : [
+            {rule: /^󱥄󱥠󱤉󱥬󿬂(.+)$/, recognize(line) {return {text: line.match(this.pattern)[1]}}}
+        ],
+        recognize(line) {
+            return ""
+        },
+        action : actions.addLabel
+    },
     declare : {},
     assign : {},
     declareAssign : {},
@@ -77,11 +119,14 @@ let units = {
 }
 
 function action(lineType, line) {
+    // Single patterns can override the type's parameter recognizer
     if(lineType.pattern.recognize) lineType.recognize = lineType.pattern.recognize
     lineType.action(lineType.recognize(line))
 }
 
 function parseLine(line) {
+
+    // Match this line among the types, null if not found
     let lineType = null
     done:
     for (let i in lineTypes)
@@ -92,7 +137,7 @@ function parseLine(line) {
                 lineType.patterns = null
                 break done
             }
-
+    
     if(lineType == null) {
         error("Invalid line")
         return
