@@ -1,0 +1,22 @@
+useLine:
+    line = getCurrentLine()
+    pattern = matchPattern(line)
+    pattern.{opcode, operands[]}
+    pattern.operand.{regexToGetItFromTheLine, types[]}
+    each operands[].literal = regexToGetItFromTheLine(line)
+    if not operand.type.recognize(literal) then error
+    else each operands[].value = type.parseValue(literal)
+    function[opcode](operands[].value)
+
+FOR EACH LINE:
+get the line
+check if it matches one pattern
+    if it matches none, throw an error
+    if it matches one, good
+    if it matches multiple, throw a warning and use the one with the highest priority
+use that pattern to get the opcode and the operands
+for each operand
+    check if it matches one type pattern among its allowed types
+        same logic as above
+    parse the value according to its type
+return the opcode and the operands, preferably named
